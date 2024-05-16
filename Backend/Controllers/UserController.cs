@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using Backend.Models.Dto;
 using Backend.UtilityServices;
+using Backend.Repository.IRepository;
 
 namespace Backend.Controllers
 {
@@ -24,9 +25,13 @@ namespace Backend.Controllers
         private readonly IConfiguration _configration;
         private readonly IEmailService _emailService;
 
-        public UserController(AppDbContext appDbContext, IConfiguration configration, IEmailService emailService)
+        private readonly IUserRepository _userRepository;
+
+        public UserController(AppDbContext appDbContext, IUserRepository userRepository, IConfiguration configration, IEmailService emailService)
         {
+
             _authContext = appDbContext;
+            _userRepository = userRepository;
             _configration = configration;
             _emailService = emailService;
         }
@@ -39,22 +44,23 @@ namespace Backend.Controllers
                 return BadRequest();
             }
 
-            var user = await _authContext.Users.FirstOrDefaultAsync(x => x.Email == userObj.Username);
+            var user = await _userRepository.GetUserByEmailAsync(userObj.Username);
 
             if (user == null)
                 return NotFound(new { message = "User Not Found!" });
-
 
             if (!PasswordHasher.VerifyPassword(userObj.Password, user.Password))
             {
                 return BadRequest(new { Message = "Password is incorrect" });
             }
+
             user.Token = CreateJwtToken(user);
             var newAccessToken = user.Token;
             var newRefreshToken = CreateRefreshToken();
             user.RefreshToken = newRefreshToken;
             user.RefreshTokenExpireTime = DateTime.Now.AddDays(5);
-            await _authContext.SaveChangesAsync();
+
+            await _userRepository.UpdateUserAsync(user);
 
             return Ok(new TokenApiDto()
             {
@@ -74,41 +80,25 @@ namespace Backend.Controllers
                     return BadRequest();
                 }
 
-                // Check username
-
-                if (await CheckUserNameExistAsync(userObj.Username))
+                if (await _userRepository.CheckUserNameExistAsync(userObj.Username))
                 {
-                    return BadRequest(new { Message = "Username already Exist!" });
+                    return BadRequest(new { Message = "Username already exists!" });
                 }
 
-                // Check Email
-
-                if (await CheckEmailExistAsync(userObj.Email))
+                if (await _userRepository.CheckEmailExistAsync(userObj.Email))
                 {
-                    return BadRequest(new { Message = "Email already Exist!" });
+                    return BadRequest(new { Message = "Email already exists!" });
                 }
 
-
-                // Check Password Strength
                 var pass = CheckPasswordStength(userObj.Password);
                 if (!string.IsNullOrEmpty(pass))
                 {
                     return BadRequest(new { Message = pass.ToString() });
                 }
 
+                await _userRepository.CreateUserAsync(userObj);
 
-                userObj.Password = PasswordHasher.HashPassword(userObj.Password);
-                userObj.Role = "User";
-                userObj.Token = "";
-
-
-                await _authContext.Users.AddAsync(userObj);
-                await _authContext.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    message = "User Registered"
-                });
+                return Ok(new { message = "User Registered" });
             }
             catch (Exception e)
             {
@@ -116,19 +106,6 @@ namespace Backend.Controllers
                 Console.WriteLine($"An error occurred during user registration: {e.Message}");
                 return StatusCode(500, new { message = "An error occurred during user registration" });
             }
-        }
-
-
-
-        private async Task<bool> CheckUserNameExistAsync(string username)
-        {
-            return await _authContext.Users.AnyAsync(x => x.Username == username);
-        }
-
-
-        private async Task<bool> CheckEmailExistAsync(string email)
-        {
-            return await _authContext.Users.AnyAsync(x => x.Email == email);
         }
 
 
@@ -250,7 +227,9 @@ namespace Backend.Controllers
             string refreshToken = tokenApiDto.RefreshToken;
             var principal = GetPrincipalFromExpiredToken(accessToken);
             var username = principal.Identity.Name;
-            var user = await _authContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+
             if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpireTime <= DateTime.Now)
             {
                 return BadRequest("Invalid Request");
@@ -259,7 +238,9 @@ namespace Backend.Controllers
             var newAccessToken = CreateJwtToken(user);
             var newRefreshToken = CreateRefreshToken();
             user.RefreshToken = newRefreshToken;
-            await _authContext.SaveChangesAsync();
+
+            await _userRepository.UpdateUserAsync(user);
+
             return Ok(new TokenApiDto
             {
                 AccessToken = newAccessToken,
@@ -268,34 +249,36 @@ namespace Backend.Controllers
         }
 
 
-
         [HttpPost("forgetpassword")]
         public async Task<IActionResult> SendEmail([FromBody] User userObj)
         {
             var email = userObj.Email;
-                var user = await _authContext.Users.FirstOrDefaultAsync(a => a.Email == email);
-                if(user is null)
+            var user = await _userRepository.GetUserByEmailAsync(email);
+
+            if (user is null)
+            {
+                return NotFound(new
                 {
-                    return NotFound(new
-                    {
-                        StatusCode = 404,
-                        Message = "email doesn't exists"
-                    });
-                }
+                    StatusCode = 404,
+                    Message = "Email doesn't exist"
+                });
+            }
+
             // Generate a 6-digit OTP
             string otp = GenerateOTP();
 
             string from = _configration["EmailSettings:From"];
             var emailModel = new EmailModel(email, "Reset Password!!", EmailBody.EmailStringBody(email, otp));
             _emailService.SendEmail(emailModel);
+
             _authContext.Entry(user).State = EntityState.Modified;
-            await _authContext.SaveChangesAsync();
+            await _userRepository.UpdateUserAsync(user);
+
             return Ok(new
             {
-                statusCode = 200,
+                StatusCode = 200,
                 Message = "Email sent!",
                 OTP = otp
-
             });
         }
 
@@ -314,7 +297,7 @@ namespace Backend.Controllers
         public async Task<IActionResult> ConfirmPassword([FromBody] NewPasswordDto newPasswordDto)
         {
             // Check if the provided email exists in the database
-            var user = await _authContext.Users.FirstOrDefaultAsync(u => u.Email == newPasswordDto.Email);
+            var user = await _userRepository.GetUserByEmailAsync(newPasswordDto.Email);
             if (user == null)
             {
                 return NotFound(new
@@ -328,7 +311,7 @@ namespace Backend.Controllers
             user.Password = PasswordHasher.HashPassword(newPasswordDto.Password);
 
             // Save changes to the database
-            await _authContext.SaveChangesAsync();
+            await _userRepository.UpdateUserAsync(user);
 
             return Ok(new
             {
@@ -336,9 +319,5 @@ namespace Backend.Controllers
                 Message = "Password reset successful"
             });
         }
-
-
-
-
     }
 }

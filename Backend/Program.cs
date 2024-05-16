@@ -1,4 +1,6 @@
 using Backend.Context;
+using Backend.Repository.IRepository;
+using Backend.Repository;
 using Backend.UtilityServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +36,7 @@ builder.Services.AddDbContext<AppDbContext>(option =>
 
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
 builder.Services.AddAuthentication(x =>
@@ -54,6 +57,9 @@ builder.Services.AddAuthentication(x =>
         ClockSkew = TimeSpan.Zero
     };
 });
+
+
+
 
 var app = builder.Build();
 
