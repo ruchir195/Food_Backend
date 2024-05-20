@@ -319,5 +319,43 @@ namespace Backend.Controllers
                 Message = "Password reset successful"
             });
         }
+
+
+
+
+
+
+        [HttpPost("changePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        {
+            // Check if the provided email exists in the database
+            var user = await _userRepository.GetUserByEmailAsync(changePasswordDto.Email);
+            if (user == null)
+            {   
+                return NotFound(new
+                {
+                    StatusCode = 404,
+                    Message = "Email not found"
+                });
+            }
+
+            if (!PasswordHasher.VerifyPassword(changePasswordDto.opassword, user.Password))
+            {
+                return BadRequest(new { Message = "Password is incorrect" });
+            }
+
+            // Update the user's password with the new password provided
+            user.Password = PasswordHasher.HashPassword(changePasswordDto.Password);
+
+            // Save changes to the database
+            await _userRepository.UpdateUserAsync(user);
+
+
+            return Ok(new
+            {
+                StatusCode = 200,
+                Message = "Password change successfully"
+            });
+        }
     }
 }
