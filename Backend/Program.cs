@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Backend.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,9 +38,12 @@ builder.Services.AddDbContext<AppDbContext>(option =>
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddHostedService<ExpireCouponCleanup>();
+
 
 
 builder.Services.AddAuthentication(x =>
+
 {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
