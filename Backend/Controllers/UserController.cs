@@ -357,5 +357,18 @@ namespace Backend.Controllers
                 Message = "Password change successfully"
             });
         }
+
+
+
+        [HttpGet("{uniqueName}")]
+        public async Task<IActionResult> GetUserByUniqueName(string uniqueName)
+        {
+            var user = await _userRepository.GetUserByUniqueName(uniqueName);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+            return Ok(user);
+        }
     }
 }

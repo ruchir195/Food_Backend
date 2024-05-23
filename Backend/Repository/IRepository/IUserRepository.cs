@@ -16,6 +16,7 @@ namespace Backend.Repository.IRepository
         Task<User> GetUserByUsernameAsync(string username);
 
 
-
+        // show the first name in navbar
+        Task<User> GetUserByUniqueName(string uniqueName);
     }
 }

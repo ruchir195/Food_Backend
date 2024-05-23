@@ -62,5 +62,15 @@ namespace Backend.Repository
         {
             return await _authContext.Users.FirstOrDefaultAsync(u => u.Username == username);
         }
+
+
+
+
+
+        // show the first name in navbar
+        public async Task<User> GetUserByUniqueName(string uniqueName)
+        {
+            return await _authContext.Users.FirstOrDefaultAsync(u => u.Username == uniqueName);
+        }
     }
 }
