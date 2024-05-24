@@ -16,7 +16,7 @@ namespace Backend.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpPost]
+        [HttpPost("Notification")]
         public async Task<ActionResult<Notification>> CreateNotification(Notification notification)
         {
             var createdNotification = await _notificationService.CreateNotification(notification);
