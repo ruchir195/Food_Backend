@@ -1,10 +1,11 @@
-﻿using Backend.Context;
-using Backend.Models;
+﻿using Backend.Backend.Service.IService;
+using Backend.Context;
+using Backend.Dto;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend.UtilityServices
+namespace Backend.Backend.Service.Service
 {
-    public class NotificationService : INotificationService
+    public class NotificationService : INotificationService 
     {
         private readonly AppDbContext _appDbContext;
 

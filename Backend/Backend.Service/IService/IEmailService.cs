@@ -1,6 +1,6 @@
 ﻿using Backend.Models;
 
-namespace Backend.UtilityServices
+namespace Backend.Backend.Service.IUtilityService
 {
     public interface IEmailService
     {

@@ -11,9 +11,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
-using Backend.Models.Dto;
-using Backend.UtilityServices;
-using Backend.Repository.IRepository;
+
+using Backend.Dto;
+using Backend.Backend.Service.IUtilityService;
+using Backend.Backend.Repository.IRepository;
 
 namespace Backend.Controllers
 {
@@ -25,9 +26,10 @@ namespace Backend.Controllers
         private readonly IConfiguration _configration;
         private readonly IEmailService _emailService;
 
-        private readonly IUserRepository _userRepository;
+      
+        private readonly IRepository<User> _userRepository;
 
-        public UserController(AppDbContext appDbContext, IUserRepository userRepository, IConfiguration configration, IEmailService emailService)
+        public UserController(AppDbContext appDbContext, IRepository<User> userRepository, IConfiguration configration, IEmailService emailService)
         {
 
             _authContext = appDbContext;

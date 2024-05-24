@@ -1,12 +1,15 @@
 using Backend.Context;
-using Backend.Repository.IRepository;
-using Backend.Repository;
-using Backend.UtilityServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Backend.Helpers;
+using Backend.Backend.Service.UtilityServices;
+using Backend.Backend.Service.IUtilityService;
+using Backend.Backend.Repository.IRepository;
+using Backend.Backend.Repository.Repository;
+using AutoMapper;
+using Backend.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,9 +40,10 @@ builder.Services.AddDbContext<AppDbContext>(option =>
 
 
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddTransient(typeof(IRepository<>), typeof(Repositiory<>));
 builder.Services.AddHostedService<ExpireCouponCleanup>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSingleton(new MapperConfiguration(x => x.AddProfile(new MapperProfile())).CreateMapper());
 
 
 

@@ -2,10 +2,11 @@
 using MimeKit;
 using System.Net.Mail;
 using MailKit.Net.Smtp;
+using Backend.Backend.Service.IUtilityService;
 
-namespace Backend.UtilityServices
+namespace Backend.Backend.Service.UtilityServices
 {
-    public class EmailService:IEmailService
+    public class EmailService : IEmailService
     {
         private readonly IConfiguration configuration;
 

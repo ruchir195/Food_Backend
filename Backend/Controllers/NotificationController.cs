@@ -1,5 +1,5 @@
-﻿using Backend.Models;
-using Backend.UtilityServices;
+﻿using Backend.Backend.Service.IUtilityService;
+using Backend.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +16,7 @@ namespace Backend.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpPost("Notification")]
+        [HttpPost]
         public async Task<ActionResult<Notification>> CreateNotification(Notification notification)
         {
             var createdNotification = await _notificationService.CreateNotification(notification);
