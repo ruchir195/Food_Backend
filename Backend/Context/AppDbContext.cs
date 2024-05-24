@@ -12,12 +12,14 @@ namespace Backend.Context
         }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<CoupenDb> CoupenDbs { get; set; }
+        public DbSet<CoupenDb> CoupenDbs { get; set; }       
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().ToTable("users");
             modelBuilder.Entity<CoupenDb>().ToTable("coupen");
+            modelBuilder.Entity<Notification>().ToTable("notification");
         }
     }
 }

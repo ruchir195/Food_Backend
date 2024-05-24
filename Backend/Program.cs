@@ -39,6 +39,7 @@ builder.Services.AddDbContext<AppDbContext>(option =>
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddHostedService<ExpireCouponCleanup>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 
 
