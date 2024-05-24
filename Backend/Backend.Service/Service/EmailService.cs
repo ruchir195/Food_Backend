@@ -2,7 +2,7 @@
 using System.Net.Mail;
 using MailKit.Net.Smtp;
 using Backend.Dto;
-using Backend.Backend.Service.IService;
+using Backend.Backend.Service.IUtilityService;
 
 namespace Backend.Backend.Service.Service
 {
@@ -47,6 +47,11 @@ namespace Backend.Backend.Service.Service
                 }
             }
 
+        }
+
+        public void SendEmail(Models.EmailModel emailModel)
+        {
+            throw new NotImplementedException();
         }
     }
 }

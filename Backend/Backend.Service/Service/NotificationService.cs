@@ -1,11 +1,11 @@
-﻿using Backend.Backend.Service.IService;
+﻿using Backend.Backend.Service.IUtilityService;
 using Backend.Context;
 using Backend.Dto;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Backend.Service.Service
 {
-    public class NotificationService : INotificationService 
+    public class NotificationService : INotificationService
     {
         private readonly AppDbContext _appDbContext;
 
@@ -16,14 +16,14 @@ namespace Backend.Backend.Service.Service
 
         public async Task<Notification> CreateNotification(Notification notification)
         {
-            _appDbContext.Notifications.Add(notification);
+            Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<Models.Notification> entityEntry  = _appDbContext.Notifications.Add(notification);
             await _appDbContext.SaveChangesAsync();
             return notification;
         }
 
         public async Task<IEnumerable<Notification>> GetAllNotifications()
         {
-            return await _appDbContext.Notifications.ToListAsync();
+            return (IEnumerable<Notification>)await _appDbContext.Notifications.ToListAsync();
         }
 
         public async Task<Notification> GetNotificationById(int id)
@@ -45,6 +45,21 @@ namespace Backend.Backend.Service.Service
         {
             _appDbContext.Notifications.RemoveRange(_appDbContext.Notifications);
             await _appDbContext.SaveChangesAsync();
+        }
+
+        public Task<Models.Notification> CreateNotification(Models.Notification notification)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<IEnumerable<Models.Notification>> INotificationService.GetAllNotifications()
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Models.Notification> INotificationService.GetNotificationById(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }
