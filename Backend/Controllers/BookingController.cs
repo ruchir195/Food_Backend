@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Backend.Backend.Repository.IRepository;
+using Backend.Context;
 using Backend.Dto;
 using Backend.Models;
 using Microsoft.AspNetCore.Http;
@@ -27,15 +28,22 @@ namespace Backend.Controllers
 
             if (booking != null)
             {
+
+                var user = await repository.GetUserByEmailAsync(booking.Email);
+
+                if (user == null)
+                {
+                    return NotFound("User not found");
+                }
                 //  Check if the user exists and can book a meal
-                bool canBookMeal = repository.CanUserBookMealAsync(booking.UserID).Result;
+                bool canBookMeal = repository.CanUserBookMealAsync(user.Id).Result;
 
                 //if (!canBookMeal)
                 //{
                 //    return BadRequest("User has already booked a meal.");
                 //}
 
-                bool canStartNewBooking = await repository.CanStartNewBookingAsync(booking.UserID, booking.BookingStartDate);
+                bool canStartNewBooking = await repository.CanStartNewBookingAsync(user.Id, booking.BookingStartDate);
 
                 if (!canStartNewBooking)
                 {
@@ -66,10 +74,18 @@ namespace Backend.Controllers
 
 
 
-                var mealboooking = mapper.Map<BookingDTO, BookingModel>(booking);
+                var mealboooking = mapper.Map<BookingModel>(booking);
+                mealboooking.UserID = user.Id;
+                mealboooking.User = user;
 
                 repository.Insert(mealboooking);
-                return Ok("Meal Booked SucessFully..!");
+                
+
+                return Ok(new
+                {
+                    StatusCode = 200,
+                    Message = "Meal Booked SucessFully..!"
+                });
             }
 
             else
@@ -80,10 +96,17 @@ namespace Backend.Controllers
         }
 
 
-        [HttpGet]
-        public IActionResult ViewBooking(int userId)
+        [HttpGet("ViewBooking")]
+        public async Task<IActionResult> ViewBooking([FromQuery] string email)
         {
-            var booking = repository.GetBookingsByUserId(userId);
+            var user = await repository.GetUserByEmailAsync(email);
+
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var booking = repository.GetBookingsByUserId(user.Id);
             if (booking == null)
             {
                 return NotFound("No booking Found for specific userID");
@@ -122,46 +145,46 @@ namespace Backend.Controllers
 
 
 
-        [HttpPost("QuickBooking")]
-        public async Task<IActionResult> QuickBooking(BookingDTO booking)
-        {
+        //[HttpPost("QuickBooking")]
+        //public async Task<IActionResult> QuickBooking(BookingDTO booking)
+        //{
 
-            if (booking != null)
-            {
+        //    if (booking != null)
+        //    {
 
-                bool canStartNewBooking = await repository.CanStartNewBookingAsync(booking.UserID, booking.BookingStartDate);
+        //        bool canStartNewBooking = await repository.CanStartNewBookingAsync(booking.UserID, booking.BookingStartDate);
 
-                if (!canStartNewBooking)
-                {
-                    return BadRequest("User cannot start a new booking before the end date of the recent booking.");
-                }
+        //        if (!canStartNewBooking)
+        //        {
+        //            return BadRequest("User cannot start a new booking before the end date of the recent booking.");
+        //        }
 
-                DateTime bookingStartDate = booking.BookingStartDate;
-                DateTime threeMonthsFromNow = DateTime.Today.AddMonths(3);
+        //        DateTime bookingStartDate = booking.BookingStartDate;
+        //        DateTime threeMonthsFromNow = DateTime.Today.AddMonths(3);
 
-                if (bookingStartDate > threeMonthsFromNow)
-                {
-                    return BadRequest("User can only book within three months from the current date.");
-                }
+        //        if (bookingStartDate > threeMonthsFromNow)
+        //        {
+        //            return BadRequest("User can only book within three months from the current date.");
+        //        }
 
 
-                if (booking.BookingStartDate.Date <= DateTime.Today)
-                {
-                    if (booking.BookingStartDate.Hour >= 20)
-                    {
-                        return BadRequest("You cannot book lunch or dinner after 8 PM.");
-                    }
-                    return BadRequest("User Can not book meal today or any past dates.");
-                }
+        //        if (booking.BookingStartDate.Date <= DateTime.Today)
+        //        {
+        //            if (booking.BookingStartDate.Hour >= 20)
+        //            {
+        //                return BadRequest("You cannot book lunch or dinner after 8 PM.");
+        //            }
+        //            return BadRequest("User Can not book meal today or any past dates.");
+        //        }
 
-                var mealbooking = mapper.Map<BookingDTO, BookingModel>(booking);
+        //        var mealbooking = mapper.Map<BookingDTO, BookingModel>(booking);
 
-                repository.Insert(mealbooking);
-                return Ok("Meal Booked SucessFully");
+        //        repository.Insert(mealbooking);
+        //        return Ok("Meal Booked SucessFully");
 
-            }
-            return Ok();
+        //    }
+        //    return Ok();
 
-        }
+        //}
     }
 }

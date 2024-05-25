@@ -8,7 +8,9 @@ namespace Backend.Mapper
     {
         public MapperProfile()
         {
-            CreateMap<BookingModel, BookingDTO>().ReverseMap();
+            CreateMap<BookingDTO, BookingModel>()
+            .ForMember(dest => dest.UserID, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore());
         }
     }
 }

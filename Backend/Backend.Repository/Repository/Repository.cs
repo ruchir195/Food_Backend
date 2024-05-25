@@ -135,6 +135,7 @@ namespace Backend.Backend.Repository.Repository
         public void Insert(BookingModel objBooking)
         {
             _authContext.Bookings.Add(objBooking);
+            
             _authContext.SaveChanges();
         }
 
