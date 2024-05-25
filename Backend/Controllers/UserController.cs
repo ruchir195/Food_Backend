@@ -27,9 +27,9 @@ namespace Backend.Controllers
         private readonly IEmailService _emailService;
 
       
-        private readonly IRepository<Dto.User> _userRepository;
+        private readonly IRepository<User> _userRepository;
 
-        public UserController(AppDbContext appDbContext, IRepository<Dto.User> userRepository, IConfiguration configration, IEmailService emailService)
+        public UserController(AppDbContext appDbContext, IRepository<User> userRepository, IConfiguration configration, IEmailService emailService)
         {
 
             _authContext = appDbContext;
@@ -39,7 +39,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost("authenticate")]
-        public async Task<IActionResult> Authenticate([FromBody] Dto.User userObj)
+        public async Task<IActionResult> Authenticate([FromBody] User userObj)
         {
             if (userObj == null)
             {
@@ -73,7 +73,7 @@ namespace Backend.Controllers
 
 
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterUser([FromBody] Dto.User userObj)
+        public async Task<IActionResult> RegisterUser([FromBody] User userObj)
         {
             try
             {
@@ -134,7 +134,7 @@ namespace Backend.Controllers
 
 
 
-        private string CreateJwtToken(Dto.User user)
+        private string CreateJwtToken(User user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("veryverySecretKey12345678901234567890");
@@ -211,7 +211,7 @@ namespace Backend.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<Dto.User>> GetAllUser()
+        public async Task<ActionResult<User>> GetAllUser()
         {
             return Ok(await _authContext.Users.ToListAsync());
         }
@@ -250,13 +250,9 @@ namespace Backend.Controllers
             });
         }
 
-        private string CreateJwtToken(Models.User user)
-        {
-            throw new NotImplementedException();
-        }
 
         [HttpPost("forgetpassword")]
-        public async Task<IActionResult> SendEmail([FromBody] Dto.User userObj)
+        public async Task<IActionResult> SendEmail([FromBody] User userObj)
         {
             var email = userObj.Email;
             var user = await _userRepository.GetUserByEmailAsync(email);
@@ -274,7 +270,7 @@ namespace Backend.Controllers
             string otp = GenerateOTP();
 
             string from = _configration["EmailSettings:From"];
-            var emailModel = new Dto.EmailModel(email, "Reset Password!!", EmailBody.EmailStringBody(email, otp));
+            var emailModel = new EmailModel(email, "Reset Password!!", EmailBody.EmailStringBody(email, otp));
             _emailService.SendEmail(emailModel);
 
             _authContext.Entry(user).State = EntityState.Modified;

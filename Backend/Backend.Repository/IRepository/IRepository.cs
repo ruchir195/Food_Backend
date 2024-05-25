@@ -23,6 +23,5 @@ namespace Backend.Backend.Repository.IRepository
         Task<bool> CancelBookingsByDateAsync(DateTime date);
         Task<bool> CanStartNewBookingAsync(int userId, DateTime newBookingStartDate);
         Task<bool> CanUserBookMealAsync(int userId);
-        Task CreateUserAsync(Dto.User userObj);
     }
 }
