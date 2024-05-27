@@ -15,13 +15,17 @@ namespace Backend.Backend.Repository.IRepository
         Task<User> GetUserByUsernameAsync(string username);
 
 
-        // show the first name in navbar
-        Task<User> GetUserByUniqueName(string uniqueName);
         IQueryable<BookingModel> GetBookingsByUserId(int userId);
         void Insert(BookingModel objBooking);
         Task<BookingModel> GetBookingByID(int id);
         Task<bool> CancelBookingsByDateAsync(DateTime date);
         Task<bool> CanStartNewBookingAsync(int userId, DateTime newBookingStartDate);
         Task<bool> CanUserBookMealAsync(int userId);
+
+        Task<BookingModel> GetExistingBookingAsync(int userId, DateTime bookingStartDate);
+
+
+
+        Task AddNotificationAsync(Notification notification);
     }
 }

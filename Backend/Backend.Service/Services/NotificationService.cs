@@ -1,6 +1,7 @@
 ﻿using Backend.Backend.Service.IUtilityService;
 using Backend.Context;
 using Backend.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Backend.Service.UtilityServices
@@ -26,9 +27,11 @@ namespace Backend.Backend.Service.UtilityServices
             return await _appDbContext.Notifications.ToListAsync();
         }
 
-        public async Task<Notification> GetNotificationById(int id)
+        public async Task<List<Notification>> GetNotificationById(int id)
         {
-            return await _appDbContext.Notifications.FindAsync(id);
+            return await _appDbContext.Notifications
+                .Where(n => n.UserId == id)
+                .ToListAsync();
         }
 
         public async Task DeleteNotification(int id)
@@ -46,5 +49,18 @@ namespace Backend.Backend.Service.UtilityServices
             _appDbContext.Notifications.RemoveRange(_appDbContext.Notifications);
             await _appDbContext.SaveChangesAsync();
         }
+
+
+
+
+
+
+
+
+
+
+
+
+       
     }
 }

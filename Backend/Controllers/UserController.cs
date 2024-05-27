@@ -353,6 +353,16 @@ namespace Backend.Controllers
             await _userRepository.UpdateUserAsync(user);
 
 
+            // Create and save the notification
+            var notification = new Notification
+            {
+                UserId = user.Id,
+                Message = "Password updated successfully.",
+                TimeStamp = DateTime.UtcNow
+            };
+            await _userRepository.AddNotificationAsync(notification);
+
+
             return Ok(new
             {
                 StatusCode = 200,
@@ -362,10 +372,10 @@ namespace Backend.Controllers
 
 
 
-        [HttpGet("{uniqueName}")]
-        public async Task<IActionResult> GetUserByUniqueName(string uniqueName)
+        [HttpGet("{email}")]
+        public async Task<IActionResult> GetUserByUniqueName(string email)
         {
-            var user = await _userRepository.GetUserByUniqueName(uniqueName);
+            var user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null)
             {
                 return NotFound(new { message = "User not found" });

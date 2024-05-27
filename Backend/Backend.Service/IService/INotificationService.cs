@@ -6,7 +6,7 @@ namespace Backend.Backend.Service.IUtilityService
     {
         Task<Notification> CreateNotification(Notification notification);
         Task<IEnumerable<Notification>> GetAllNotifications();
-        Task<Notification> GetNotificationById(int id);
+        Task<List<Notification>> GetNotificationById(int id);
         Task DeleteNotification(int id);
         Task DeleteAllNotifications();
     }

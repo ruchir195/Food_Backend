@@ -13,7 +13,7 @@
 
         public DateTime BookingStartDate { get; set; }
 
-        public DateTime BookingEndDate { get; set; }
+        public DateTime? BookingEndDate { get; set; }
 
         public bool? ISBooked { get; set; }
     }

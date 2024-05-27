@@ -65,14 +65,6 @@ namespace Backend.Backend.Repository.Repository
 
 
 
-
-
-        // show the first name in navbar
-        public async Task<User> GetUserByUniqueName(string uniqueName)
-        {
-            return await _authContext.Users.FirstOrDefaultAsync(u => u.Username == uniqueName);
-        }
-
         public IQueryable<BookingModel> GetBookingsByUserId(int userId)
         {
             return _authContext.Bookings.Where(b => b.UserID == userId);
@@ -182,6 +174,28 @@ namespace Backend.Backend.Repository.Repository
             // Check if the start date of the new booking is after the end date of the recent booking
             return newBookingStartDate > recentBookingEndDate;
         }
+
+
+        public async Task<BookingModel> GetExistingBookingAsync(int userId, DateTime bookingStartDate)
+        {
+            // Assuming you have access to your database context or repository here
+            // Query the database to check if the user has an existing booking for the given date
+            var existingBooking = await _authContext.Bookings
+                                                .FirstOrDefaultAsync(b => b.UserID == userId &&
+                                                                          b.BookingStartDate.Date == bookingStartDate.Date);
+
+            return existingBooking;
+        }
+
+
+
+
+        public async Task AddNotificationAsync(Notification notification)
+        {
+            _authContext.Notifications.Add(notification);
+            await _authContext.SaveChangesAsync();
+        }
+
 
     }
 }
