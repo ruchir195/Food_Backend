@@ -1,4 +1,5 @@
-﻿using Backend.Context;
+﻿using Backend.Backend.Repository.IRepository;
+using Backend.Context;
 using Backend.Dto;
 using Backend.Models;
 using Microsoft.AspNetCore.Http;
@@ -14,22 +15,24 @@ namespace Backend.Controllers
     {
 
         private readonly AppDbContext _authContext;
-        public CoupenController(AppDbContext appDbContext)
+        private readonly IRepository<User> _userRepository;
+        public CoupenController(AppDbContext appDbContext, IRepository<User> userRepository)
         {
             _authContext = appDbContext;
+            _userRepository = userRepository;
         }
 
 
         [HttpPost("AddData")]
-        public async Task<IActionResult> CreateCoupon([FromBody] CoupenRequestDto request)
+        public async Task<IActionResult> CreateCoupon([FromBody] int userID)
         {
-            if (request == null)
+            if (userID == null)
             {
                 return BadRequest("Invalid request data");
             }
 
 
-              var user = await _authContext.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
+              var user = await _userRepository.GetUserByIdAsync(userID);
 
              if (user == null)
              {

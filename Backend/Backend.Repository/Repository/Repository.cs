@@ -22,6 +22,11 @@ namespace Backend.Backend.Repository.Repository
             return await _authContext.Users.FirstOrDefaultAsync(x => x.Email == email);
         }
 
+        public async Task<User> GetUserByIdAsync(int id)
+        {
+            return await _authContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+        }
+
         public async Task<User> UpdateUserAsync(User user)
         {
             _authContext.Update(user);
@@ -32,9 +37,9 @@ namespace Backend.Backend.Repository.Repository
 
 
         // register user
-        public async Task<bool> CheckUserNameExistAsync(string username)
+        public async Task<bool> CheckUserNameExistAsync(string email)
         {
-            return await _authContext.Users.AnyAsync(u => u.Username == username);
+            return await _authContext.Users.AnyAsync(u => u.Email == email);
         }
 
         public async Task<bool> CheckEmailExistAsync(string email)
@@ -58,16 +63,31 @@ namespace Backend.Backend.Repository.Repository
 
 
 
-        public async Task<User> GetUserByUsernameAsync(string username)
+        public async Task<User> GetUserByUsernameAsync(string id)
         {
-            return await _authContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (int.TryParse(id, out int userId))
+            {
+                return await _authContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            }
+            return null; // or throw an appropriate exception or handle the error as needed
         }
 
 
 
-        public IQueryable<BookingModel> GetBookingsByUserId(int userId)
+        //public IQueryable<BookingModel> GetBookingsByUserId(int userId)
+        //{
+        //    return _authContext.Bookings.Where(b => b.UserID == userId);
+        //}
+
+
+
+        public async Task<List<BookingModel>> GetBookingsByUserId(int userId)
         {
-            return _authContext.Bookings.Where(b => b.UserID == userId);
+            var bookings = await _authContext.Bookings
+                 .Where(b => b.UserID == userId && b.BookingStartDate >= DateTime.Today)
+                 .OrderBy(b => b.BookingStartDate)
+                 .ToListAsync();
+            return bookings;
         }
 
         public async Task<bool> CancelBookingsByDateAsync(DateTime date)
@@ -108,11 +128,13 @@ namespace Backend.Backend.Repository.Repository
                 // Update the booking status
                 if (booking.BookingStartDate == booking.BookingEndDate)
                 {
-                    _authContext.Bookings.Remove(booking);
+                    booking.BookingEndDate = booking.BookingStartDate; // Set the end date to the start date to cancel the booking
+
                 }
                 else
                 {
                     booking.BookingEndDate = booking.BookingStartDate; // Set the end date to the start date to cancel the booking
+                    _authContext.Bookings.Remove(booking);
                 }
             }
 

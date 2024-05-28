@@ -2,7 +2,7 @@
 {
     public class CoupenRequestDto
     {
-        public string Email { get; set; }
+        public int userID { get; set; }
     }
 }
 

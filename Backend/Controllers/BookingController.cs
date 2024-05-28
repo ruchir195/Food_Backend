@@ -120,11 +120,13 @@ namespace Backend.Controllers
                 return NotFound("User not found");
             }
 
-            var booking = repository.GetBookingsByUserId(user.Id);
+            var booking = await repository.GetBookingsByUserId(user.Id);
             if (booking == null)
             {
                 return NotFound("No booking Found for specific userID");
             }
+
+
             return Ok(booking);
         }
 

@@ -46,7 +46,7 @@ namespace Backend.Controllers
                 return BadRequest();
             }
 
-            var user = await _userRepository.GetUserByEmailAsync(userObj.Username);
+            var user = await _userRepository.GetUserByEmailAsync(userObj.Email);
 
             if (user == null)
                 return NotFound(new { message = "User Not Found!" });
@@ -82,10 +82,7 @@ namespace Backend.Controllers
                     return BadRequest();
                 }
 
-                if (await _userRepository.CheckUserNameExistAsync(userObj.Username))
-                {
-                    return BadRequest(new { Message = "Username already exists!" });
-                }
+               
 
                 if (await _userRepository.CheckEmailExistAsync(userObj.Email))
                 {
@@ -141,7 +138,7 @@ namespace Backend.Controllers
             var identity = new ClaimsIdentity(new Claim[]
             {
                    new Claim(ClaimTypes.Role, user.Role),
-                   new Claim(ClaimTypes.Name, $"{user.Username}")
+                   new Claim(ClaimTypes.Name, $"{user.Id}")
             });
 
             var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
@@ -228,9 +225,9 @@ namespace Backend.Controllers
             string accessToken = tokenApiDto.AccessToken;
             string refreshToken = tokenApiDto.RefreshToken;
             var principal = GetPrincipalFromExpiredToken(accessToken);
-            var username = principal.Identity.Name;
+            var id = principal.Identity.Name;
 
-            var user = await _userRepository.GetUserByUsernameAsync(username);
+            var user = await _userRepository.GetUserByUsernameAsync(id);
 
             if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpireTime <= DateTime.Now)
             {
