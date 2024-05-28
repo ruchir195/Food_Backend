@@ -2,6 +2,7 @@
 using Backend.Context;
 using Backend.Dto;
 using Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ namespace Backend.Controllers
         }
 
 
+        [Authorize]
         [HttpPost("AddData")]
         public async Task<IActionResult> CreateCoupon([FromBody] int userID)
         {

@@ -3,6 +3,7 @@ using Backend.Backend.Repository.IRepository;
 using Backend.Context;
 using Backend.Dto;
 using Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +22,7 @@ namespace Backend.Controllers
             this.mapper = mapper;
         }
 
-
+        [Authorize]
         [HttpPost("MealBooking")]
         public async Task<IActionResult> MealBooking(BookingDTO booking)
         {
@@ -65,10 +66,7 @@ namespace Backend.Controllers
                     return BadRequest("User Can not book meal today or any past dates.");
                 }
 
-                //if (booking.BookingEndDate.HasValue && booking.BookingEndDate.Value.Date <= incrementedBookingStartDate.Date)
-                //{
-                //    return BadRequest("Booking end date is not greater than booking start date.");
-                //}
+               
 
                 // Iterate over each day in the booking period and check for existing bookings
                 for (DateTime date = bookingStartDate.Date; date <= bookingEndDate.Date; date = date.AddDays(1))
@@ -90,7 +88,7 @@ namespace Backend.Controllers
                     mealBooking.UserID = user.Id;
                     mealBooking.User = user;
                     mealBooking.BookingStartDate = date; // Update booking start date to the current date of iteration
-
+                    mealBooking.BookingEndDate = date;
                     repository.Insert(mealBooking);
                 }
 
@@ -110,6 +108,7 @@ namespace Backend.Controllers
         }
 
 
+        [Authorize]
         [HttpGet("ViewBooking")]
         public async Task<IActionResult> ViewBooking([FromQuery] string email)
         {
@@ -130,6 +129,7 @@ namespace Backend.Controllers
             return Ok(booking);
         }
 
+        [Authorize]
         [HttpDelete("{date}")]
         public async Task<IActionResult> CancelBooking(DateTime date, [FromQuery] string email)
         {
@@ -181,7 +181,7 @@ namespace Backend.Controllers
 
 
 
-
+        [Authorize]
         [HttpPost("QuickBooking")]
         public async Task<IActionResult> QuickBooking(BookingDTO booking)
         {

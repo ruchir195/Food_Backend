@@ -323,7 +323,7 @@ namespace Backend.Controllers
 
 
 
-
+        [Authorize]
         [HttpPost("changePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
