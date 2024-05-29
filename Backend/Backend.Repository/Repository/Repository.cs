@@ -131,11 +131,11 @@ namespace Backend.Backend.Repository.Repository
                     booking.BookingEndDate = booking.BookingStartDate; // Set the end date to the start date to cancel the booking
 
                 }
-                else
-                {
-                    booking.BookingEndDate = booking.BookingStartDate; // Set the end date to the start date to cancel the booking
-                    _authContext.Bookings.Remove(booking);
-                }
+
+
+                booking.BookingEndDate = booking.BookingStartDate; // Set the end date to the start date to cancel the booking
+                _authContext.Bookings.Remove(booking);
+
             }
 
             await _authContext.SaveChangesAsync();
@@ -149,7 +149,7 @@ namespace Backend.Backend.Repository.Repository
         public void Insert(BookingModel objBooking)
         {
             _authContext.Bookings.Add(objBooking);
-            
+
             _authContext.SaveChanges();
         }
 

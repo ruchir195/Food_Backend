@@ -47,9 +47,6 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CupponID")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("ISBooked")
                         .HasColumnType("bit");
 

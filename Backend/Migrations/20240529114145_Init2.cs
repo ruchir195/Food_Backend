@@ -4,20 +4,20 @@
 
 namespace Backend.Migrations
 {
-    public partial class v7 : Migration
+    public partial class Init2 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Username",
-                table: "users");
+                name: "CupponID",
+                table: "booking");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "Username",
-                table: "users",
+                name: "CupponID",
+                table: "booking",
                 type: "nvarchar(max)",
                 nullable: true);
         }
