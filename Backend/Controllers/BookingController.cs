@@ -25,94 +25,81 @@ namespace Backend.Controllers
         [HttpPost("MealBooking")]
         public async Task<IActionResult> MealBooking(BookingDTO booking)
         {
-
-            if (booking != null)
+            if (booking == null)
             {
-
-                var user = await repository.GetUserByEmailAsync(booking.Email);
-
-                if (user == null)
-                {
-                    return NotFound("User not found");
-                }
-
-                // Check if the user has an existing meal booking
-                var existingBooking = await repository.GetExistingBookingAsync(user.Id, booking.BookingStartDate);
-                if (existingBooking != null)
-                {
-                    return BadRequest("User already has a meal booked for this date.");
-                }
-
-
-                // Increment booking start date by one day
-                DateTime incrementedBookingStartDate = booking.BookingStartDate.AddDays(1);
-                bool canStartNewBooking = await repository.CanStartNewBookingAsync(user.Id, incrementedBookingStartDate);
-
-                if (!canStartNewBooking)
-                {
-                    return BadRequest("User cannot start a new booking before the end date of the recent booking.");
-                }
-
-                DateTime bookingStartDate = incrementedBookingStartDate;
-                DateTime bookingEndDate = (booking.BookingEndDate ?? incrementedBookingStartDate).AddDays(1).Date; // Use start date if end date is not provided
-                DateTime threeMonthsFromNow = DateTime.Today.AddMonths(3);
-
-                if (bookingStartDate > threeMonthsFromNow)
-                {
-                    return BadRequest("User can only book within three months from the current date.");
-                }
-
-                if (booking.BookingStartDate.Date <= DateTime.Today)
-                {
-                    if (booking.BookingStartDate.Hour <= 20)
-                    {
-                        return BadRequest("You cannot book lunch or dinner after 8 PM.");
-                    }
-                    return BadRequest("User Can not book meal today or any past dates.");
-                }
-
-                //if (booking.BookingEndDate.HasValue && booking.BookingEndDate.Value.Date <= incrementedBookingStartDate.Date)
-                //{
-                //    return BadRequest("Booking end date is not greater than booking start date.");
-                //}
-
-                // Iterate over each day in the booking period and check for existing bookings
-                for (DateTime date = bookingStartDate.Date; date <= bookingEndDate.Date; date = date.AddDays(1))
-                {
-                    var isAlreadyBooked = await repository.GetExistingBookingAsync(user.Id, date);
-                    if (isAlreadyBooked != null)
-                    {
-                        return BadRequest($"Meal already booked on {date.ToShortDateString()}.");
-                    }
-                }
-
-
-
-
-                // Iterate over each day in the booking period and save separate entries for each day
-                for (DateTime date = bookingStartDate.Date; date <= bookingEndDate.Date; date = date.AddDays(1))
-                {
-                    var mealBooking = mapper.Map<BookingModel>(booking);
-                    mealBooking.UserID = user.Id;
-                    mealBooking.User = user;
-                    mealBooking.BookingStartDate = date; // Update booking start date to the current date of iteration
-                    mealBooking.BookingEndDate = date;
-                    repository.Insert(mealBooking);
-                }
-
-
-                return Ok(new
-                {
-                    StatusCode = 200,
-                    Message = "Meal Booked SucessFully..!"
-                });
+                return BadRequest("Booking not found");
             }
 
-            else
+            var user = await repository.GetUserByEmailAsync(booking.Email);
+
+            if (user == null)
             {
-                BadRequest("Booking not found");
+                return NotFound("User not found");
             }
-            return Ok(booking);
+
+            // Check if the user has an existing meal booking
+            var existingBooking = await repository.GetExistingBookingAsync(user.Id, booking.BookingStartDate, booking.BookingType);
+            if (existingBooking != null)
+            {
+                return BadRequest($"User already has a {booking.BookingType} booked for this date.");
+            }
+
+            // Increment booking start date by one day
+            DateTime incrementedBookingStartDate = booking.BookingStartDate.AddDays(1);
+            //bool canStartNewBooking = await repository.CanStartNewBookingAsync(user.Id, incrementedBookingStartDate);
+
+            //if (!canStartNewBooking)
+            //{
+            //    return BadRequest("User cannot start a new booking before the end date of the recent booking.");
+            //}
+
+            DateTime bookingStartDate = incrementedBookingStartDate;
+            DateTime bookingEndDate = (booking.BookingEndDate ?? incrementedBookingStartDate).AddDays(1).Date; // Use start date if end date is not provided
+            DateTime threeMonthsFromNow = DateTime.Today.AddMonths(3);
+
+            if (bookingStartDate > threeMonthsFromNow)
+            {
+                return BadRequest("User can only book within three months from the current date.");
+            }
+
+            if (booking.BookingStartDate.Date < DateTime.Today)
+            {
+                return BadRequest("User cannot book a meal for past dates.");
+            }
+            else if (booking.BookingStartDate.Date == DateTime.Today)
+            {
+                if (DateTime.Now.Hour > 20)
+                {
+                    return BadRequest("You cannot book lunch or dinner after 8 PM.");
+                }
+            }
+
+            //// Iterate over each day in the booking period and check for existing bookings
+            //for (DateTime date = bookingStartDate.Date; date <= bookingEndDate.Date; date = date.AddDays(1))
+            //{
+            //    var isAlreadyBooked = await repository.GetExistingBookingAsync(user.Id, date , booking.BookingType);
+            //    if (isAlreadyBooked != null)
+            //    {
+            //        return BadRequest($"Meal already booked on {date.ToShortDateString()}.");
+            //    }
+            //}
+
+            // Iterate over each day in the booking period and save separate entries for each day
+            for (DateTime date = bookingStartDate.Date; date <= bookingEndDate.Date; date = date.AddDays(1))
+            {
+                var mealBooking = mapper.Map<BookingModel>(booking);
+                mealBooking.UserID = user.Id;
+                mealBooking.User = user;
+                mealBooking.BookingStartDate = date; // Update booking start date to the current date of iteration
+                mealBooking.BookingEndDate = date;
+                repository.Insert(mealBooking);
+            }
+
+            return Ok(new
+            {
+                StatusCode = 200,
+                Message = "Meal Booked Successfully!"
+            });
         }
 
 
@@ -137,14 +124,16 @@ namespace Backend.Controllers
         }
 
         [HttpDelete("{date}")]
-        public async Task<IActionResult> CancelBooking(DateTime date, [FromQuery] string email)
+        public async Task<IActionResult> CancelBooking(DateTime date, [FromQuery] string email, [FromQuery] string bookingtype)
         {
+
             var user = await repository.GetUserByEmailAsync(email);
 
             if (user == null)
             {
                 return NotFound("User not found");
             }
+
 
             var tomorrowDate = DateTime.Today.AddDays(1);
 
@@ -160,13 +149,43 @@ namespace Backend.Controllers
                 return BadRequest("Cannot cancel tomorrow's bookings after 10 PM today.");
             }
 
-            var isCancelled = await repository.CancelBookingsByDateAsync(date);
+
+
+            // Validate the bookingtype parameter
+            if (bookingtype != "lunch" && bookingtype != "dinner" && bookingtype != "both")
+            {
+                return BadRequest("Invalid booking type. Valid values are 'lunch', 'dinner', or 'both'.");
+            }
+
+            bool isLunchCancelled = false;
+            bool isDinnerCancelled = false;
+
+            // Cancel bookings based on the booking type
+            if (bookingtype == "lunch" || bookingtype == "both")
+            {
+                isLunchCancelled = await repository.CancelBookingsByDateAsync(date, "lunch");
+            }
+            if (bookingtype == "dinner" || bookingtype == "both")
+            {
+                isDinnerCancelled = await repository.CancelBookingsByDateAsync(date, "dinner");
+            }
+
+            if (!isLunchCancelled && !isDinnerCancelled)
+            {
+                return NotFound("No bookings found for the specified date and type.");
+            }
+
+            // Create and save the notification
+            var notificationMessage = "Your booking(s) have been cancelled for " + date.ToShortDateString() + ":";
+            if (isLunchCancelled) notificationMessage += " lunch";
+            if (isDinnerCancelled) notificationMessage += " dinner";
+
+
+            var isCancelled = await repository.CancelBookingsByDateAsync(date, bookingtype);
             if (!isCancelled)
             {
                 return NotFound("No bookings found for tomorrow's date.");
             }
-
-
             // Create and save the notification
             var notification = new Notification
             {
@@ -192,65 +211,66 @@ namespace Backend.Controllers
         public async Task<IActionResult> QuickBooking(BookingDTO booking)
         {
 
-            if (booking != null)
+
+            if (booking == null)
             {
-                var user = await repository.GetUserByEmailAsync(booking.Email);
-
-                if (user == null)
-                {
-                    return NotFound("User not found");
-                }
-
-                // Check if the user has an existing meal booking
-                var existingBooking = await repository.GetExistingBookingAsync(user.Id, booking.BookingStartDate);
-                if (existingBooking != null)
-                {
-                    return BadRequest("User already has a meal booked for this date.");
-                }
-
-                //  Check if the user exists and can book a meal
-                bool canBookMeal = repository.CanUserBookMealAsync(user.Id).Result;
-
-                DateTime incrementedBookingStartDate = booking.BookingStartDate.AddDays(1);
-                bool canStartNewBooking = await repository.CanStartNewBookingAsync(user.Id, incrementedBookingStartDate);
-
-                if (!canStartNewBooking)
-                {
-                    return BadRequest("User cannot start a new booking before the end date of the recent booking.");
-                }
-
-                DateTime bookingStartDate = booking.BookingStartDate.AddDays(1).Date;
-                DateTime threeMonthsFromNow = DateTime.Today.AddMonths(3);
-
-                if (bookingStartDate > threeMonthsFromNow)
-                {
-                    return BadRequest("User can only book within three months from the current date.");
-                }
-
-
-                if (booking.BookingStartDate.Date <= DateTime.Today)
-                {
-                    if (booking.BookingStartDate.Hour >= 20)
-                    {
-                        return BadRequest("You cannot book lunch or dinner after 8 PM.");
-                    }
-                    return BadRequest("User Can not book meal today or any past dates.");
-                }
-
-                var mealboooking = mapper.Map<BookingModel>(booking);
-                mealboooking.UserID = user.Id;
-                mealboooking.User = user;
-
-                repository.Insert(mealboooking);
-                return Ok(new
-                {
-                    StatusCode = 200,
-                    Message = "Quick Meal Booked SucessFully..!"
-                });
-
+                return BadRequest("Booking not found");
             }
-            return Ok(booking);
 
+            var user = await repository.GetUserByEmailAsync(booking.Email);
+
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            // Check if the user has an existing meal booking
+            var existingBooking = await repository.GetExistingBookingAsync(user.Id, booking.BookingStartDate, booking.BookingType);
+            if (existingBooking != null)
+            {
+                return BadRequest($"User already has a {booking.BookingType} booked for this date.");
+            }
+
+            // Check if the user exists and can book a meal
+            //bool canBookMeal = await repository.CanUserBookMealAsync(user.Id);
+            //if (!canBookMeal)
+            //{
+            //    return BadRequest("User is not allowed to book a meal.");
+            //}
+
+            DateTime bookingStartDate = booking.BookingStartDate.Date;
+            DateTime threeMonthsFromNow = DateTime.Today.AddMonths(3);
+
+            if (bookingStartDate > threeMonthsFromNow)
+            {
+                return BadRequest("User can only book within three months from the current date.");
+            }
+
+            // Check if the booking date is today
+            if (booking.BookingStartDate.Date == DateTime.Today)
+            {
+                // Allow booking if current time is before 8 PM
+                if (DateTime.Now.Hour >= 20)
+                {
+                    return BadRequest("You cannot book lunch or dinner after 8 PM.");
+                }
+            }
+            else if (booking.BookingStartDate.Date < DateTime.Today)
+            {
+                return BadRequest("User cannot book a meal for past dates.");
+            }
+
+
+            var mealBooking = mapper.Map<BookingModel>(booking);
+            mealBooking.UserID = user.Id;
+            mealBooking.User = user;
+            repository.Insert(mealBooking);
+
+            return Ok(new
+            {
+                StatusCode = 200,
+                Message = "Quick Meal Booked Successfully!"
+            });
         }
     }
 }

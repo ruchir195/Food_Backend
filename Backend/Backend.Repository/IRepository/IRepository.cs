@@ -16,19 +16,17 @@ namespace Backend.Backend.Repository.IRepository
         Task<User> GetUserByUsernameAsync(string? id);
 
 
-       // IQueryable<BookingModel> GetBookingsByUserId(int userId);
+        // IQueryable<BookingModel> GetBookingsByUserId(int userId);
 
         Task<List<BookingModel>> GetBookingsByUserId(int userId);
         void Insert(BookingModel objBooking);
         Task<BookingModel> GetBookingByID(int id);
-        Task<bool> CancelBookingsByDateAsync(DateTime date);
+        Task<bool> CancelBookingsByDateAsync(DateTime date, string bookingtype);
         Task<bool> CanStartNewBookingAsync(int userId, DateTime newBookingStartDate);
         Task<bool> CanUserBookMealAsync(int userId);
 
-        Task<BookingModel> GetExistingBookingAsync(int userId, DateTime bookingStartDate);
-
-
-
+        Task<BookingModel> GetExistingBookingAsync(int userId, DateTime bookingStartDate, string BookingType);
+        Task<(bool HasLunchBooking, bool HasDinnerBooking)> GetBookingsForTomorrowAsync(string email);
         Task AddNotificationAsync(Notification notification);
     }
 }

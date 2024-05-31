@@ -90,7 +90,7 @@ namespace Backend.Backend.Repository.Repository
             return bookings;
         }
 
-        public async Task<bool> CancelBookingsByDateAsync(DateTime date)
+        public async Task<bool> CancelBookingsByDateAsync(DateTime date, string BookingType)
         {
             var tomorrowDate = DateTime.Today.AddDays(1);
 
@@ -109,7 +109,7 @@ namespace Backend.Backend.Repository.Repository
             }
 
             var bookingsToCancel = await _authContext.Bookings
-                .Where(b => b.BookingStartDate.Date == date.Date)
+                .Where(b => b.BookingStartDate.Date == date.Date && b.BookingType == BookingType)
                 .ToListAsync();
 
             if (bookingsToCancel == null || !bookingsToCancel.Any())
@@ -198,13 +198,13 @@ namespace Backend.Backend.Repository.Repository
         }
 
 
-        public async Task<BookingModel> GetExistingBookingAsync(int userId, DateTime bookingStartDate)
+        public async Task<BookingModel> GetExistingBookingAsync(int userId, DateTime bookingStartDate, string BookingType)
         {
             // Assuming you have access to your database context or repository here
             // Query the database to check if the user has an existing booking for the given date
             var existingBooking = await _authContext.Bookings
                                                 .FirstOrDefaultAsync(b => b.UserID == userId &&
-                                                                          b.BookingStartDate.Date == bookingStartDate.Date);
+                                                                          b.BookingStartDate.Date == bookingStartDate.Date && b.BookingType == BookingType);
 
             return existingBooking;
         }
@@ -218,7 +218,17 @@ namespace Backend.Backend.Repository.Repository
             await _authContext.SaveChangesAsync();
         }
 
+        public async Task<(bool HasLunchBooking, bool HasDinnerBooking)> GetBookingsForTomorrowAsync(string email)
+        {
+            var user = await GetUserByEmailAsync(email);
+            if (user == null) return (false, false);
 
+            var tomorrowDate = DateTime.Today.AddDays(1);
+            var lunchBooking = await _authContext.Bookings.AnyAsync(b => b.UserID == user.Id && b.BookingStartDate == tomorrowDate && b.BookingType == "lunch");
+            var dinnerBooking = await _authContext.Bookings.AnyAsync(b => b.UserID == user.Id && b.BookingStartDate == tomorrowDate && b.BookingType == "dinner");
+
+            return (lunchBooking, dinnerBooking);
+        }
     }
 }
 
