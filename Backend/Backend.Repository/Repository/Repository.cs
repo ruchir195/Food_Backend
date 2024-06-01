@@ -92,21 +92,21 @@ namespace Backend.Backend.Repository.Repository
 
         public async Task<bool> CancelBookingsByDateAsync(DateTime date, string BookingType)
         {
-            var tomorrowDate = DateTime.Today.AddDays(1);
+            //var tomorrowDate = DateTime.Today.AddDays(1);
 
             // Check if the requested date is for tomorrow
-            if (date.Date != tomorrowDate)
-            {
-                return false; // Can only cancel bookings for tomorrow's date
-            }
+            //if (date.Date != tomorrowDate)
+            //{
+            //    return false; // Can only cancel bookings for tomorrow's date
+            //}
 
             // Check if the current time is before 10 PM
             var currentTime = DateTime.Now;
-            var cutoffTime = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, 22, 0, 0); // 10:00 PM
-            if (currentTime >= cutoffTime)
-            {
-                return false; // Cannot cancel tomorrow's bookings after 10 PM today
-            }
+           // var cutoffTime = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, 22, 0, 0); // 10:00 PM
+           // if (currentTime >= cutoffTime)
+           // {
+           //     return false; // Cannot cancel tomorrow's bookings after 10 PM today
+           // }
 
             var bookingsToCancel = await _authContext.Bookings
                 .Where(b => b.BookingStartDate.Date == date.Date && b.BookingType == BookingType)

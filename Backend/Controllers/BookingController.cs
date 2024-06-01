@@ -134,14 +134,15 @@ namespace Backend.Controllers
                 return NotFound("User not found");
             }
 
+            // Increment booking start date by one day
+            DateTime incrementedBookingDate = date.AddDays(1);
+            //var tomorrowDate = DateTime.Today.AddDays(1);
 
-            var tomorrowDate = DateTime.Today.AddDays(1);
-
-            // Check if the requested date is for tomorrow
-            if (date.Date != tomorrowDate)
-            {
-                return BadRequest("Can only cancel bookings for tomorrow's date.");
-            }
+            //// Check if the requested date is for tomorrow
+            //if (date.Date != tomorrowDate)
+            //{
+            //    return BadRequest("Can only cancel bookings for tomorrow's date.");
+            //}
             var currentTime = DateTime.Now;
             var cutoffTime = new DateTime(currentTime.Year, currentTime.Month, currentTime.Day, 22, 0, 0); // 10:00 PM
             if (currentTime >= cutoffTime)
@@ -152,7 +153,7 @@ namespace Backend.Controllers
 
 
             // Validate the bookingtype parameter
-            if (bookingtype != "lunch" && bookingtype != "dinner" && bookingtype != "both")
+            if (bookingtype != "Lunch" && bookingtype != "Dinner" && bookingtype != "Both")
             {
                 return BadRequest("Invalid booking type. Valid values are 'lunch', 'dinner', or 'both'.");
             }
@@ -161,13 +162,13 @@ namespace Backend.Controllers
             bool isDinnerCancelled = false;
 
             // Cancel bookings based on the booking type
-            if (bookingtype == "lunch" || bookingtype == "both")
+            if (bookingtype == "Lunch" || bookingtype == "Both")
             {
-                isLunchCancelled = await repository.CancelBookingsByDateAsync(date, "lunch");
+                isLunchCancelled = await repository.CancelBookingsByDateAsync(incrementedBookingDate, "Lunch");
             }
-            if (bookingtype == "dinner" || bookingtype == "both")
+            if (bookingtype == "Dinner" || bookingtype == "Both")
             {
-                isDinnerCancelled = await repository.CancelBookingsByDateAsync(date, "dinner");
+                isDinnerCancelled = await repository.CancelBookingsByDateAsync(incrementedBookingDate, "Dinner");
             }
 
             if (!isLunchCancelled && !isDinnerCancelled)
@@ -176,21 +177,21 @@ namespace Backend.Controllers
             }
 
             // Create and save the notification
-            var notificationMessage = "Your booking(s) have been cancelled for " + date.ToShortDateString() + ":";
-            if (isLunchCancelled) notificationMessage += " lunch";
-            if (isDinnerCancelled) notificationMessage += " dinner";
+            var notificationMessage = "Your booking(s) have been cancelled for " + incrementedBookingDate.ToShortDateString() + ":";
+            if (isLunchCancelled) notificationMessage += " Lunch";
+            if (isDinnerCancelled) notificationMessage += " Dinner";
 
 
-            var isCancelled = await repository.CancelBookingsByDateAsync(date, bookingtype);
-            if (!isCancelled)
-            {
-                return NotFound("No bookings found for tomorrow's date.");
-            }
+            //var isCancelled = await repository.CancelBookingsByDateAsync(date, bookingtype);
+            //if (!isCancelled)
+            //{
+            //    return NotFound("No bookings found for tomorrow's date.");
+            //}
             // Create and save the notification
             var notification = new Notification
             {
                 UserId = user.Id,
-                Message = $"Your meal has been cancelled for {date.ToShortDateString()}",
+                Message = $"Your {bookingtype} meal has been cancelled for {incrementedBookingDate.ToShortDateString()}",
                 TimeStamp = DateTime.UtcNow
             };
             await repository.AddNotificationAsync(notification);
@@ -198,7 +199,7 @@ namespace Backend.Controllers
             return Ok(new
             {
                 StatusCode = 200,
-                Message = "Bookings for tomorrow cancelled successfully."
+                Message = $"Bookings for {incrementedBookingDate.ToShortDateString()} cancelled successfully."
             });
         }
 

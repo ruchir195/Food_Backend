@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Backend.Migrations
 {
-    public partial class Init : Migration
+    public partial class v1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -70,7 +70,6 @@ namespace Backend.Migrations
                     UserID = table.Column<int>(type: "int", nullable: false),
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BookingType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CupponID = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BookingStartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BookingEndDate = table.Column<DateTime>(type: "datetime2", nullable: true),

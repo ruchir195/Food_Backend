@@ -138,7 +138,8 @@ namespace Backend.Controllers
             var identity = new ClaimsIdentity(new Claim[]
             {
                    new Claim(ClaimTypes.Role, user.Role),
-                   new Claim(ClaimTypes.Name, $"{user.Id}")
+                   new Claim(ClaimTypes.Name, $"{user.Id}"),
+                   new Claim(ClaimTypes.Email, user.Email)
             });
 
             var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
