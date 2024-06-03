@@ -16,7 +16,6 @@ namespace Backend.Models
 
             public User User { get; set; }
 
-            public string Category { get; set; }
 
             public string BookingType { get; set; }
             

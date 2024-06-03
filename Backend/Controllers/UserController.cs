@@ -283,6 +283,7 @@ namespace Backend.Controllers
         }
 
 
+
         // Method to generate a 6-digit OTP
         private string GenerateOTP()
         {

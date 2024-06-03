@@ -37,15 +37,18 @@ namespace Backend.Controllers
                 return NotFound("User not found");
             }
 
+
+            // Increment booking start date by one day
+            DateTime incrementedBookingStartDate = booking.BookingStartDate.AddDays(1);
+
             // Check if the user has an existing meal booking
-            var existingBooking = await repository.GetExistingBookingAsync(user.Id, booking.BookingStartDate, booking.BookingType);
+            var existingBooking = await repository.GetExistingBookingAsync(user.Id, incrementedBookingStartDate, booking.BookingType);
             if (existingBooking != null)
             {
                 return BadRequest($"User already has a {booking.BookingType} booked for this date.");
             }
 
-            // Increment booking start date by one day
-            DateTime incrementedBookingStartDate = booking.BookingStartDate.AddDays(1);
+          
             //bool canStartNewBooking = await repository.CanStartNewBookingAsync(user.Id, incrementedBookingStartDate);
 
             //if (!canStartNewBooking)
@@ -173,7 +176,7 @@ namespace Backend.Controllers
 
             if (!isLunchCancelled && !isDinnerCancelled)
             {
-                return NotFound("No bookings found for the specified date and type.");
+                return NotFound($"No bookings found for the specified {incrementedBookingDate.ToShortDateString()} and {bookingtype}");
             }
 
             // Create and save the notification
@@ -256,15 +259,13 @@ namespace Backend.Controllers
                     return BadRequest("You cannot book lunch or dinner after 8 PM.");
                 }
             }
-            else if (booking.BookingStartDate.Date < DateTime.Today)
-            {
-                return BadRequest("User cannot book a meal for past dates.");
-            }
+           
 
 
             var mealBooking = mapper.Map<BookingModel>(booking);
             mealBooking.UserID = user.Id;
             mealBooking.User = user;
+            mealBooking.BookingEndDate = bookingStartDate;
             repository.Insert(mealBooking);
 
             return Ok(new

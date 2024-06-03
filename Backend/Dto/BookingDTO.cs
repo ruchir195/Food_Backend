@@ -4,7 +4,6 @@
     {
         public string Email { get; set; }
         
-        public string Category { get; set; }
 
         public string BookingType { get; set; }
 
