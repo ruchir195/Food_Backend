@@ -228,8 +228,9 @@ namespace Backend.Controllers
                 return NotFound("User not found");
             }
 
+   
             // Check if the user has an existing meal booking
-            var existingBooking = await repository.GetExistingBookingAsync(user.Id, booking.BookingStartDate, booking.BookingType);
+            var existingBooking = await repository.GetExistingBookingAsync(user.Id, booking.BookingStartDate.Date, booking.BookingType);
             if (existingBooking != null)
             {
                 return BadRequest($"User already has a {booking.BookingType} booked for this date.");
@@ -242,7 +243,7 @@ namespace Backend.Controllers
             //    return BadRequest("User is not allowed to book a meal.");
             //}
 
-            DateTime bookingStartDate = booking.BookingStartDate.Date;
+            var bookingStartDate = booking.BookingStartDate.Date;
             DateTime threeMonthsFromNow = DateTime.Today.AddMonths(3);
 
             if (bookingStartDate > threeMonthsFromNow)
@@ -265,6 +266,7 @@ namespace Backend.Controllers
             var mealBooking = mapper.Map<BookingModel>(booking);
             mealBooking.UserID = user.Id;
             mealBooking.User = user;
+            mealBooking.BookingStartDate = bookingStartDate;
             mealBooking.BookingEndDate = bookingStartDate;
             repository.Insert(mealBooking);
 
