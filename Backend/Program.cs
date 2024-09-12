@@ -67,19 +67,6 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-void ConfigureServices(IServiceCollection services)
-{
-    services.AddCors(options =>
-    {
-        options.AddPolicy("AllowMyOrigin",
-            builder => builder.AllowAnyOrigin()
-                              .AllowAnyMethod()
-                              .AllowAnyHeader());
-    });
-
-    // Other service configurations
-}
-
 
 var app = builder.Build();
 
