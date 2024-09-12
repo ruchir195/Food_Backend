@@ -16,7 +16,6 @@ namespace Backend.Models
 
             public User User { get; set; }
 
-
             public string BookingType { get; set; }
             
             public DateTime BookingDate { get; set; }
@@ -26,5 +25,10 @@ namespace Backend.Models
             public DateTime? BookingEndDate { get; set; }
 
             public bool ISBooked { get; set; }
+
+            //public int? CoupenDbId { get; set; }
+            //[ForeignKey("CoupenDbId")] 
+            //public CoupenDb CoupenDb { get; set; }
+
         }
 }

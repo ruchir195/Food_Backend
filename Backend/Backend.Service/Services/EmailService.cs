@@ -20,7 +20,7 @@ namespace Backend.Backend.Service.UtilityServices
             var emailMessage = new MimeMessage();
 
             var from = configuration["EmailSettings:From"];
-            emailMessage.From.Add(new MailboxAddress("Food Meal", from));
+            emailMessage.From.Add(new MailboxAddress("Meal Facility", from));
             emailMessage.To.Add(new MailboxAddress(emailModel.To, emailModel.To));
             emailMessage.Subject = emailModel.Subject;
             emailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
