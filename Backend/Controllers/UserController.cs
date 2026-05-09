@@ -134,7 +134,7 @@ namespace Backend.Controllers
         private string CreateJwtToken(User user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("veryverySecretKey12345678901234567890");
+            var key = Encoding.ASCII.GetBytes(GetJwtSigningKey());
             var identity = new ClaimsIdentity(new Claim[]
             {
                    new Claim(ClaimTypes.Role, user.Role),
@@ -146,8 +146,10 @@ namespace Backend.Controllers
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = identity,
-                Expires = DateTime.Now.AddSeconds(10),
+                Expires = DateTime.UtcNow.AddMinutes(_configration.GetValue("Jwt:ExpiryMinutes", 15)),
                 SigningCredentials = credentials,
+                Issuer = _configration["Jwt:Issuer"],
+                Audience = _configration["Jwt:Audience"]
             };
             var token = jwtTokenHandler.CreateToken(tokenDescriptor);
             return jwtTokenHandler.WriteToken(token);
@@ -176,11 +178,13 @@ namespace Backend.Controllers
 
         private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {
-            var key = Encoding.ASCII.GetBytes("veryverySecretKey12345678901234567890");
+            var key = Encoding.ASCII.GetBytes(GetJwtSigningKey());
             var tokenValidationParameter = new TokenValidationParameters
             {
-                ValidateAudience = false,
-                ValidateIssuer = false,
+                ValidateAudience = !string.IsNullOrWhiteSpace(_configration["Jwt:Audience"]),
+                ValidAudience = _configration["Jwt:Audience"],
+                ValidateIssuer = !string.IsNullOrWhiteSpace(_configration["Jwt:Issuer"]),
+                ValidIssuer = _configration["Jwt:Issuer"],
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateLifetime = false
@@ -205,6 +209,17 @@ namespace Backend.Controllers
             // If the token passed validation, return the principal (user identity) extracted from the token
             return principal;
 
+        }
+
+        private string GetJwtSigningKey()
+        {
+            var signingKey = _configration["Jwt:SigningKey"];
+            if (string.IsNullOrWhiteSpace(signingKey))
+            {
+                throw new InvalidOperationException("JWT signing key is not configured.");
+            }
+
+            return signingKey;
         }
 
         [Authorize]

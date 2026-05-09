@@ -32,11 +32,16 @@ namespace Backend.Backend.Service.UtilityServices
             {
                 try
                 {
-                    client.Connect(configuration["EmailSettings:SmtpServer"], 465, true);
-                    client.Authenticate(configuration["EmailSettings:From"], configuration["EmailSettings:Password"]);
+                    var smtpServer = configuration["EmailSettings:SmtpServer"];
+                    var port = configuration.GetValue("EmailSettings:Port", 465);
+                    var username = configuration["EmailSettings:Username"];
+                    var password = configuration["EmailSettings:Password"];
+
+                    client.Connect(smtpServer, port, true);
+                    client.Authenticate(username, password);
                     client.Send(emailMessage);
                 }
-                catch (Exception ex)
+                catch
                 {
                     throw;
                 }

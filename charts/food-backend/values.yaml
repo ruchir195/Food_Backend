@@ -1,0 +1,63 @@
+fullnameOverride: food-backend
+
+image:
+  repository: food-backend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+env:
+  ASPNETCORE_ENVIRONMENT: Production
+  ASPNETCORE_URLS: http://+:8080
+  App__HttpsRedirectionEnabled: "false"
+  Database__AutoMigrate: "false"
+  Swagger__Enabled: "false"
+  Jwt__Issuer: Food.Backend
+  Jwt__Audience: Food.Client
+  Cors__AllowedOrigins__0: https://food-frontend.example.com
+
+secretEnv:
+  create: true
+  existingSecret: ""
+  type: Opaque
+  stringData:
+    ConnectionStrings__sqlServerConnStr: "PROD_SQLSERVER_CONNECTION_STRING_FROM_SECRET"
+    Jwt__SigningKey: "PROD_JWT_SIGNING_KEY_FROM_SECRET"
+    EmailSettings__From: "no-reply@example.com"
+    EmailSettings__SmtpServer: "smtp.example.com"
+    EmailSettings__Port: "465"
+    EmailSettings__Username: "SMTP_USERNAME_FROM_SECRET"
+    EmailSettings__Password: "SMTP_PASSWORD_FROM_SECRET"
+
+resources: {}
+
+probes:
+  startup:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 30
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 6
+  liveness:
+    enabled: true
+    initialDelaySeconds: 20
+    periodSeconds: 20
+    timeoutSeconds: 2
+    failureThreshold: 3
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
